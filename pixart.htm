@@ -268,23 +268,27 @@ function drawPixelOverlay(pixels,w,h,layout){
  for(let col=0;col<w;col++){
    for(let row=0;row<h;row++){
      let idx;
-     if(layout==="matrix_v_serp"){
-       const wiring=gId('wiringStart').value;
-       if(wiring==="tl")
-         idx=col%2===0?col*h+row:col*h+(h-1-row);
-       if(wiring==="bl")
-         idx=col%2===0?col*h+(h-1-row):col*h+row;
-       if(wiring==="tr")
-         idx=((w-1-col)%2===0)?(w-1-col)*h+row:(w-1-col)*h+(h-1-row);
-       if(wiring==="br")
-         idx=((w-1-col)%2===0)?(w-1-col)*h+(h-1-row):(w-1-col)*h+row;
-     }else if(layout==="matrix"){
-       idx=row*w+col;
-     }else{
-       const reverse=layout==="r2l";
-       const dir=row%2===0?!reverse:reverse;
-       idx=dir?row*w+col:row*w+(w-1-col);
-     }
+if (layout === "matrix_v_serp") {
+  // === WLED-compatible vertical serpentine fix ===
+  let c = col;
+  let r = row;
+
+  // flips voor start-hoeken
+  if (start[1] === "r") c = (w - 1) - col;
+  if (start[0] === "b") r = (h - 1) - row;
+
+  // serpentine: kolommen om en om
+  let colIndex = c;
+  let rowIndex = r;
+
+  // ⬇️ binnen elke kolom omdraaien:
+  if ((start[1] === "r") ? ((w - 1 - col) % 2 === 0) : (col % 2 === 0)) {
+    rowIndex = (h - 1) - r;
+  }
+
+  pos = colIndex * h + rowIndex;
+}
+
      const p=pixels.find(px=>px.idx===idx);
      const colr=p?p.color:"000000";
      c.fillStyle="#"+colr;
