@@ -242,19 +242,8 @@ if (layout === "matrix_v_serp") {
   const w = 23;  // breedte matrix
   const h = 26;  // hoogte matrix
   
-  // 180 graden rotatie
-  const colRot = (w - 1) - col;
-  const rowRot = (h - 1) - row;
-  
-  // Spiegelen van elke even rij
-  const mirroredRowRot = rowRot % 2 === 1 
-    ? (h - 1 - (rowRot % h)) 
-    : (rowRot % h);
-  
-  // Serpentine mapping met rotatie en spiegeling
-  pos = colRot * h + (colRot % 2 === 0 
-    ? mirroredRowRot 
-    : (h - 1 - mirroredRowRot));
+  // Standaard canvas-naar-matrix mapping
+  pos = col * h + (col % 2 === 0 ? row : (h - 1 - row));
 }
 
 
