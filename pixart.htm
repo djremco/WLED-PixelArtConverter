@@ -241,14 +241,13 @@ if (layout === "matrix_v_serp") {
   const w = 23;  // breedte matrix
   const h = 26;  // hoogte matrix
   
-  // Canvas roteren 90 graden met de klok mee
-  const colRot = row;
-  const rowRot = (w - 1) - col;
+  // Canvas roteren 90 graden tegen de klok in
+  const colRot = (h - 1) - row;
+  const rowRot = col;
   
   // Standaard mapping behouden
   pos = colRot * h + (colRot % 2 === 0 ? rowRot : (h - 1 - rowRot));
 }
-
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
