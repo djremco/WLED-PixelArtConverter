@@ -213,23 +213,22 @@ function getPixelRGBValues(img){
    const idx=i/4,row=Math.floor(idx/w),col=idx%w;
    let pos=idx;
 
-   if(layout==="matrix_v_serp"){
-     // verticale serpentine met 4 hoeken
-     if(wiring==="tl")
-       pos=col%2===0?col*h+row:col*h+(h-1-row);
-     if(wiring==="bl")
-       pos=col%2===0?col*h+row:col*h+(h-1-row);
-     if(wiring==="tr")
-       pos=((w-1-col)%2===0)?(w-1-col)*h+row:(w-1-col)*h+(h-1-row);
-     if(wiring==="br")
-       pos=((w-1-col)%2===0)?(w-1-col)*h+(h-1-row):(w-1-col)*h+row;
-   } else if(layout==="matrix"){
-     pos=row*w+col;
-   } else {
-     const reverse=layout==="r2l";
-     const dir=row%2===0?!reverse:reverse;
-     pos=dir?row*w+col:row*w+(w-1-col);
-   }
+if(layout==="matrix_v_serp"){
+  // WLED-compatibele verticale serpentine mapping
+  const start = wiring || "tl"; // veiligheid
+  let c = col, r = row;
+  // Flip horizontaal voor start Right-hoeken
+  if(start[1] === "r") c = (w - 1) - col;
+  // Flip verticaal voor start Bottom-hoeken
+  if(start[0] === "b") r = (h - 1) - row;
+
+  // Kolom per kolom serpentine HIGH→LOW / LOW→HIGH
+  let colIndex = c, rowIndex = r;
+  if((start[1] === "r") ? ((w - 1 - col) % 2 === 1) : (col % 2 === 1)){
+    rowIndex = (h - 1) - r;
+  }
+  pos = colIndex * h + rowIndex;
+}
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
