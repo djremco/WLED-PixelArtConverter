@@ -282,16 +282,12 @@ async function getSegments(){
 
 // --- overlay -----------------
 function drawPixelOverlay(pixels, w, h, layout) {
-  console.log("Pixels ontvangen:", pixels);
-  console.log("Breedte:", w, "Hoogte:", h);
-
   const c2 = canvas.getContext("2d");
   const step = Math.max(6, Math.floor(window.innerWidth / (w * 2)));
   canvas.width = w * step;
   canvas.height = h * step;
   c2.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Exacte mapping functie
   function mapLEDMatrix(col, row) {
     const rotCol = (w - 1) - col;
     const rotRow = (h - 1) - row;
@@ -301,16 +297,7 @@ function drawPixelOverlay(pixels, w, h, layout) {
       ? (h - 1 - rotRow)  // Oneven kolommen omkeren
       : rotRow;           // Even kolommen normaal
 
-    const idx = rotCol * h + mappedRow;
-    
-    console.log(`
-      Input: (col=${col}, row=${row})
-      Rotated: (rotCol=${rotCol}, rotRow=${rotRow})
-      Mapped: (mappedRow=${mappedRow})
-      LED Index: ${idx}
-    `);
-
-    return idx;
+    return rotCol * h + mappedRow;
   }
 
   for (let col = 0; col < w; col++) {
@@ -319,6 +306,7 @@ function drawPixelOverlay(pixels, w, h, layout) {
       const p = pixels.find(px => px.idx === idx);
       const colr = p ? p.color : "000000";
 
+      // pixelvakje tekenen
       c2.fillStyle = "#" + colr;
       c2.fillRect(col * step, row * step, step, step);
       c2.strokeStyle = "#333";
