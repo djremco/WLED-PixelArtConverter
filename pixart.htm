@@ -155,12 +155,6 @@ dropZone.addEventListener("drop", e => {
   const f = e.dataTransfer.files[0];
   if (f) loadImage(f);
 });
-console.log(`
-Original: (col=${col}, row=${row})
-Rotated:  (colRot=${colRot}, rowRot=${rowRot})
-Mirrored: (mirroredRowRot=${mirroredRowRot})
-LED Index: ${pos}
-`);
 
 // --- Copy & Download -----------
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
@@ -246,11 +240,18 @@ if (layout === "matrix_v_serp") {
   const colRot = (w - 1) - col;
   const rowRot = (h - 1) - row;
   
-  // Serpentine mapping met geïnverteerde routing
-  pos = colRot * h + (colRot % 2 === 0 
-    ? (h - 1 - rowRot)  // Even kolommen: bottom → top
-    : rowRot             // Oneven kolommen: top → bottom
+  // Geavanceerde serpentine mapping
+  pos = colRot * h + (
+    colRot % 2 === 0 
+      ? rowRot            // Even kolommen: top → bottom
+      : (h - 1 - rowRot)  // Oneven kolommen: bottom → top
   );
+
+  console.log(`
+    Canvas Input:  (col=${col}, row=${row})
+    Rotated:       (colRot=${colRot}, rowRot=${rowRot})
+    LED Index:     ${pos}
+  `);
 }
 
 
