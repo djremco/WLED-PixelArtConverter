@@ -236,12 +236,12 @@ if(layout==="matrix_v_serp"){
   // Flip verticaal voor start Bottom-hoeken
   if(start[0] === "b") r = (h - 1) - row;
 
-  // Kolom per kolom serpentine HIGH→LOW / LOW→HIGH
-  let colIndex = c, rowIndex = r;
-  if((start[1] === "r") ? ((w - 1 - col) % 2 === 1) : (col % 2 === 1)){
-    rowIndex = (h - 1) - r;
-  }
-  pos = rowIndex * w + colIndex;
+// Rij per rij serpentine L→R / R→L
+let rowIndex = r, colIndex = c;
+if ((start[0] === "b") ? ((h - 1 - row) % 2 === 1) : (row % 2 === 1)) {
+  colIndex = (w - 1) - c;
+}
+pos = rowIndex * w + colIndex;
 }
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
