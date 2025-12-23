@@ -1,107 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>WLED Pixel Art Converter v2.0</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #ddd;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 900px;
-      margin: auto;
-      text-align: center;
-    }
-    h1 {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 10px;
-    }
-    td {
-      padding: 6px;
-      vertical-align: middle;
-    }
-    input, select, button {
-      background-color: #222;
-      border: 1px solid #333;
-      color: #ddd;
-      font-size: 14px;
-      border-radius: 6px;
-      padding: 4px 6px;
-    }
-    #drop-zone {
-      border: 2px dashed #777;
-      color: #888;
-      padding: 20px;
-      margin: 15px 0;
-      cursor: pointer;
-    }
-    textarea {
-      width: 100%;
-      height: 250px;
-      background: #222;
-      color: #ddd;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 8px;
-      font-family: monospace;
-      margin-top: 10px;
-    }
-    #pixelCanvas {
-      width: 100%;
-      background: #000;
-      border: 1px solid #333;
-      margin-top: 10px;
-    }
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .button-row button {flex:1}
-  </style>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>WLED Pixel Art Converter v2.1</title>
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:#ddd;
+  margin:0;
+  padding:20px;
+}
+.container{max-width:900px;margin:auto;text-align:center}
+h1{display:flex;align-items:center;justify-content:center;gap:10px}
+table{width:100%;border-collapse:collapse;margin-bottom:10px}
+td{padding:6px;vertical-align:middle}
+input,select,button{
+  background:#222;border:1px solid #333;color:#ddd;
+  border-radius:6px;font-size:14px;padding:4px 6px;
+}
+#drop-zone{
+  border:2px dashed #777;color:#888;padding:20px;margin:15px 0;cursor:pointer;
+}
+textarea{
+  width:100%;height:250px;background:#222;color:#ddd;
+  border:1px solid #333;border-radius:6px;
+  font-family:monospace;padding:8px;margin-top:10px;
+}
+#pixelCanvas{
+  width:100%;background:#000;border:1px solid #333;margin-top:10px;
+}
+.button-row{display:flex;gap:10px;margin-top:10px}
+.button-row button{flex:1}
+</style>
 </head>
+
 <body>
 <div class="container">
-  <h1>🧩 WLED Pixel Art Converter v2.0</h1>
-  <h2>Originele Werkstrom 1.0.8 functies + vertical serpentine</h2>
-  <table id="fieldTable">
+  <h1>🧩 WLED Pixel Art Converter v2.1</h1>
+  <h2>Compatibel met Werkstrom 1.0.8 + Vertical Serpentine fix</h2>
+
+  <table>
     <tr>
-      <td><label for="ledSetupSelector">LED Setup:</label></td>
+      <td><label>LED Layout:</label></td>
       <td>
         <select id="ledSetupSelector">
-          <option value="matrix" selected>2D Matrix (horizontal)</option>
-          <option value="r2l">Serpentine – first row → left</option>
-          <option value="l2r">Serpentine – first row → right</option>
-          <option value="matrix_v_serp">Vertical serpentine (top‑bottom ↑↓)</option>
+          <option value="matrix">2D Matrix (horizontal)</option>
+          <option value="r2l">Serpentine row → left</option>
+          <option value="l2r">Serpentine row → right</option>
+          <option value="matrix_v_serp" selected>Vertical serpentine (top‑bottom ↑↓)</option>
         </select>
       </td>
     </tr>
     <tr>
-      <td><label for="outputMode">Output format:</label></td>
+      <td><label>Output format:</label></td>
       <td>
         <select id="outputMode">
           <option value="wled" selected>WLED JSON</option>
-          <option value="curl">CURL</option>
+          <option value="curl">CURL commands</option>
           <option value="ha">Home Assistant YAML</option>
         </select>
       </td>
     </tr>
     <tr>
-      <td><label for="colorFormat">Color format:</label></td>
+      <td><label>Color format:</label></td>
       <td>
         <select id="colorFormat">
           <option value="hex" selected>HEX ("RRGGBB")</option>
@@ -110,7 +75,7 @@
       </td>
     </tr>
     <tr>
-      <td><label for="addressingMode">Addressing mode:</label></td>
+      <td><label>Addressing mode:</label></td>
       <td>
         <select id="addressingMode">
           <option value="single">Single</option>
@@ -120,249 +85,175 @@
         <button onclick="addressingExample()" style="margin-left:8px">example</button>
       </td>
     </tr>
-    <tr>
-      <td><label for="brightness">Brightness:</label></td>
-      <td><input type="range" id="brightness" min="1" max="255" value="128"></td>
-    </tr>
-    <tr>
-      <td><label for="colorLimit">Max colors / JSON:</label></td>
-      <td><input type="number" id="colorLimit" min="1" max="512" value="256"></td>
-    </tr>
-    <tr>
-      <td><label for="sizeX">Width:</label></td>
-      <td><input type="number" id="sizeX" value="23"></td>
-    </tr>
-    <tr>
-      <td><label for="sizeY">Height:</label></td>
-      <td><input type="number" id="sizeY" value="26"></td>
-    </tr>
-    <tr>
-      <td><label for="deviceIP">Device IP:</label></td>
-      <td><input type="text" id="deviceIP" value="192.168.0.100"></td>
-    </tr>
-    <tr>
-      <td><label for="segmentID">Segment ID:</label></td>
-      <td><input type="number" id="segmentID" value="0"></td>
-    </tr>
+    <tr><td><label>Brightness:</label></td><td><input type="range" id="brightness" min="1" max="255" value="128"></td></tr>
+    <tr><td><label>Max colors / JSON:</label></td><td><input type="number" id="colorLimit" min="1" max="8192" value="256"></td></tr>
+    <tr><td><label>Width (px):</label></td><td><input type="number" id="sizeX" value="23"></td></tr>
+    <tr><td><label>Height (px):</label></td><td><input type="number" id="sizeY" value="26"></td></tr>
+    <tr><td><label>Device IP:</label></td><td><input type="text" id="deviceIP" value="192.168.0.100"></td></tr>
+    <tr><td><label>Segment ID:</label></td><td><input type="number" id="segmentID" value="0"></td></tr>
   </table>
 
-  <div id="drop-zone">Drop image here or click to select a file</div>
+  <div id="drop-zone">Drop image here or click to upload</div>
   <input type="file" id="file-picker" style="display:none">
-
   <canvas id="pixelCanvas"></canvas>
   <textarea id="JSONled" readonly></textarea>
-
   <div class="button-row">
     <button id="copyJSON">Copy Output</button>
     <button id="downloadJSON">Download Output</button>
   </div>
-
-  <p style="color:#666;margin-top:10px">
-    v2.0 – Complete release (2025‑10)
-  </p>
 </div>
 
-<!-- === JavaScript Section === -->
+<!-- ========= JavaScript Section ========= -->
 <script>
-// -------- Helper setup ----------
 const d=document;
-function gId(id){return d.getElementById(id);}
+function gId(i){return d.getElementById(i);}
 const canvas=gId('pixelCanvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
-const dropZone=gId('drop-zone');
-const filePicker=gId('file-picker');
-const output=gId('JSONled');
 
-// Upload events
-dropZone.addEventListener('click',()=>filePicker.click());
-filePicker.addEventListener('change',e=>loadImage(e.target.files[0]));
-dropZone.addEventListener('dragover',e=>e.preventDefault());
-dropZone.addEventListener('drop',e=>{e.preventDefault();loadImage(e.dataTransfer.files[0]);});
+// --- Upload handling ---
+gId('drop-zone').addEventListener('click',()=>gId('file-picker').click());
+gId('file-picker').addEventListener('change',e=>loadImage(e.target.files[0]));
+gId('drop-zone').addEventListener('dragover',e=>e.preventDefault());
+gId('drop-zone').addEventListener('drop',e=>{e.preventDefault();loadImage(e.dataTransfer.files[0]);});
+function loadImage(f){const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>getPixelRGBValues(img);img.src=r.result;};r.readAsDataURL(f);}
 
-function loadImage(file){
-  const r=new FileReader();
-  r.onload=()=>{
-    const img=new Image();
-    img.onload=()=>getPixelRGBValues(img);
-    img.src=r.result;
-  };
-  r.readAsDataURL(file);
-}
+// --- Copy & Download ---
+gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
+gId('downloadJSON').onclick=()=>{
+ const b=new Blob([gId('JSONled').value],{type:'application/json'});
+ const a=d.createElement('a');a.href=URL.createObjectURL(b);a.download='wled_pixel_data.json';a.click();
+};
 
-gId('copyJSON').addEventListener('click',()=>navigator.clipboard.writeText(output.value));
-gId('downloadJSON').addEventListener('click',()=>{
-  const blob=new Blob([output.value],{type:'application/json'});
-  const a=d.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='wled_pixel_data.json';
-  a.click();
-});
+// --- Exportfunctie (definitief) ---
+function exportPixels(pixels,set){
+ const{brightness,segment,colorFormat,outputMode,device,colorLimit}=set;
+ const col=h=>colorFormat==="dec"
+   ? [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]
+   : h;
 
-// -------- Exportfuncties ----------
-function exportPixels(pixels, set) {
-  const {
-    brightness,
-    segment,
-    colorFormat,
-    outputMode,
-    device,
-    colorLimit
-  } = set;
+ const chunks=[];
+ for(let i=0;i<pixels.length;i+=colorLimit){
+   const part=pixels.slice(i,i+colorLimit);
+   const seg={
+     on:true,
+     bri:brightness,
+     seg:{id:segment,i:part.map(p=>colorFormat==="dec"?col(p.color):p.color)}
+   };
+   chunks.push(seg);
+ }
 
-  // kleur omzetten
-  const col = (h) => colorFormat === "dec"
-    ? [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]
-    : h;
+ if(outputMode==="wled"){
+   if(chunks.length===1) return JSON.stringify(chunks[0]);
+   const merged=chunks.reduce((acc,c)=>acc.concat(c.seg.i),[]);
+   const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
+   return JSON.stringify(mergedObj);
+ }
 
-  // --- maak chunks ---
-  const chunks = [];
-  for (let i = 0; i < pixels.length; i += colorLimit) {
-    const part = pixels.slice(i, i + colorLimit);
-    const seg = {
-      on: true,
-      bri: brightness,
-      seg: {
-        id: segment,
-        i: part.map(p =>
-          colorFormat === "dec" ? col(p.color) : p.color
-        )
-      }
-    };
-    chunks.push(seg);
-  }
+ if(outputMode==="curl")
+   return chunks.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${JSON.stringify(j)}'`).join("\n");
 
-  // ——— combineer chunks (voor WLED import één JSON, voor curl één per POST) ———
-if (outputMode === "wled") {
-  // Combineer alle chunks tot één geldig JSON-object
-  if (arr.length === 1) return arr[0];
-
-  // Maak directe objecten van strings
-  const merged = arr.map(a => JSON.parse(a));
-
-  // Voeg alle kleurarrays samen
-  const mergedColors = merged.flatMap(m => m.seg.i);
-
-  // Bouw één object
-  const mergedObj = {
-    on: true,
-    bri: brightness,
-    seg: { id: segment, i: mergedColors }
-  };
-
-  return JSON.stringify(mergedObj);
-}
-
-  if (outputMode === "curl") {
-    return chunks
-      .map(j => `curl -X POST "http://${device}/json/state" \
--H "Content-Type: application/json" -d '${JSON.stringify(j)}'`)
-      .join("\n");
-  }
-
-  if (outputMode === "ha") {
-    const merged = chunks.reduce((acc, cur) => acc.concat(cur.seg.i), []);
-    const mergedObj = { on: true, bri: brightness, seg: { id: segment, i: merged } };
-    return `# Home Assistant Example
+ if(outputMode==="ha"){
+   const merged=chunks.reduce((acc,c)=>acc.concat(c.seg.i),[]);
+   const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
+   return `# Home Assistant YAML
 - platform: command_line
   switches:
     pixel_display:
       friendly_name: Pixel Display
       command_on: >
-        curl -X POST "http://${device}/json/state" \
--H "Content-Type: application/json" -d '${JSON.stringify(mergedObj)}'
+        curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${JSON.stringify(mergedObj)}'
       command_off: >
-        curl -X POST "http://${device}/json/state" \
--H "Content-Type: application/json" -d '{"on":false}'`;
-  }
-
-  return "";
+        curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '{"on":false}'`;
+ }
+ return "";
 }
 
-
-// -------- Hoofdfunctie ----------
+// --- Hoofdfunctie (met vertical serpentine) ---
 function getPixelRGBValues(img){
-  const w=parseInt(gId('sizeX').value);
-  const h=parseInt(gId('sizeY').value);
-  const layout=gId('ledSetupSelector').value;
-  const bri=parseInt(gId('brightness').value);
-  const outputMode=gId('outputMode').value;
-  const colorFormat=gId('colorFormat').value;
-  const addressing=gId('addressingMode').value;
-  const deviceIP=gId('deviceIP').value;
-  const segment=parseInt(gId('segmentID').value);
-  const colorLimit=parseInt(gId('colorLimit').value);
+ const w=parseInt(gId('sizeX').value);
+ const h=parseInt(gId('sizeY').value);
+ const layout=gId('ledSetupSelector').value;
+ const bri=parseInt(gId('brightness').value);
+ const outputMode=gId('outputMode').value;
+ const colorFormat=gId('colorFormat').value;
+ const addressing=gId('addressingMode').value;
+ const device=gId('deviceIP').value;
+ const segment=parseInt(gId('segmentID').value);
+ const colorLimit=parseInt(gId('colorLimit').value);
 
-  canvas.width=w;canvas.height=h;
-  ctx.drawImage(img,0,0,w,h);
-  const data=ctx.getImageData(0,0,w,h).data;
-  const pixels=[];
-
-  for(let i=0;i<data.length;i+=4){
-    const R=data[i],G=data[i+1],B=data[i+2];
-    const idx=i/4,row=Math.floor(idx/w),col=idx%w;
-    let pos=idx;
-    if(layout==="matrix_v_serp")
-      pos=col%2===0?col*h+row:col*h+(h-1-row);
-    else if(layout==="matrix")
-      pos=row*w+col;
-    else{
-      const reverse=(layout==="r2l");
-      const dir=(row%2===0?!reverse:reverse);
-      pos=dir?(row*w+col):(row*w+(w-1-col));
-    }
-    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
-    pixels.push({idx:pos,color:hex});
-  }
-  pixels.sort((a,b)=>a.idx-b.idx);
-
-  const settings={brightness:bri,segment,colorFormat,outputMode,device:deviceIP,colorLimit};
-  output.value=exportPixels(pixels,settings);
-  drawPixelOverlay(pixels,w,h);
+ canvas.width=w;canvas.height=h;
+ ctx.drawImage(img,0,0,w,h);
+ const data=ctx.getImageData(0,0,w,h).data;
+ const pixels=[];
+ for(let i=0;i<data.length;i+=4){
+   const R=data[i],G=data[i+1],B=data[i+2];
+   const idx=i/4,row=Math.floor(idx/w),col=idx%w;
+   let pos=idx;
+   if(layout==="matrix_v_serp")
+     pos=col%2===0?col*h+row:col*h+(h-1-row);
+   else if(layout==="matrix")
+     pos=row*w+col;
+   else{
+     const reverse=(layout==="r2l");
+     const dir=(row%2===0?!reverse:reverse);
+     pos=dir?(row*w+col):(row*w+(w-1-col));
+   }
+   const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
+   pixels.push({idx:pos,color:hex});
+ }
+ pixels.sort((a,b)=>a.idx-b.idx);
+ const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
+ gId('JSONled').value=exportPixels(pixels,settings);
+ drawPixelOverlay(pixels,w,h,layout);
 }
 
-// -------- Addressing demo ----------
+// --- voorbeeld en API ----
 function addressingExample(){
-  const m=gId('addressingMode').value;
-  let t='';
-  if(m==='single')t='["ff0000","00ff00","0000ff"]';
-  if(m==='range') t='[10,15,"ffaa00"]';
-  if(m==='hybrid')t='["ffaa00",0,5,"00ff00"]';
-  alert(`Voorbeeld (${m}):\n${t}`);
+ const m=gId('addressingMode').value;
+ let t="";
+ if(m==="single")t='["ff0000","00ff00","0000ff"]';
+ if(m==="range")t='[10,15,"ffaa00"]';
+ if(m==="hybrid")t='["ffaa00",0,5,"00ff00"]';
+ alert(`Voorbeeld (${m}) → ${t}`);
 }
-
-// -------- Segment API ----------
 async function getSegments(){
-  const ip=gId('deviceIP').value;
-  try{
-    const res=await fetch(`http://${ip}/json/state`);
-    const j=await res.json();
-    if(j.seg){console.log("Segments:",j.seg.length,j.seg);}
-  }catch(e){console.warn("Segment API fout:",e);}
+ const ip=gId('deviceIP').value;
+ try{
+   const r=await fetch(`http://${ip}/json/state`);
+   const j=await r.json();
+   if(j.seg)console.log("Segments:",j.seg.length,j.seg);
+ }catch(e){console.warn("Segment API error:",e);}
 }
 
-// -------- Visuele overlay ----------
-function drawPixelOverlay(pixels,w,h){
-  const c=canvas.getContext("2d");
-  const W=Math.floor(window.innerWidth/(w*1.5));
-  const H=Math.floor(window.innerHeight/(h*1.5));
-  const step=Math.max(6,Math.min(W,H));
-
-  canvas.width=w*step;
-  canvas.height=h*step;
-  for(let y=0;y<h;y++){
-    for(let x=0;x<w;x++){
-      const pos=y*w+x;
-      const p=pixels.find(px=>px.idx===pos);
-      const col=p?p.color:"000000";
-      c.fillStyle="#"+col;
-      c.fillRect(x*step,y*step,step,step);
-      c.strokeStyle="#333";c.strokeRect(x*step,y*step,step,step);
-      c.fillStyle="#aaa";
-      c.font=`${Math.max(6,step/2)}px Arial`;
-      c.textAlign="center";c.textBaseline="middle";
-      c.fillText(pos,x*step+step/2,y*step+step/2);
-    }
-  }
+// --- Visuele overlay: nummering afgestemd op wiring layout ---
+function drawPixelOverlay(pixels,w,h,layout){
+ const c=canvas.getContext("2d");
+ const step=Math.max(6,Math.floor(window.innerWidth/(w*2)));
+ canvas.width=w*step;
+ canvas.height=h*step;
+ c.clearRect(0,0,canvas.width,canvas.height);
+ for(let col=0;col<w;col++){
+   for(let row=0;row<h;row++){
+     let idx;
+     if(layout==="matrix_v_serp"){
+       idx=col%2===0?col*h+row:col*h+(h-1-row);
+     }else if(layout==="matrix"){
+       idx=row*w+col;
+     }else{
+       const reverse=(layout==="r2l");
+       const dir=(row%2===0?!reverse:reverse);
+       idx=dir?(row*w+col):(row*w+(w-1-col));
+     }
+     const p=pixels.find(px=>px.idx===idx);
+     const colr=p?p.color:"000000";
+     c.fillStyle="#"+colr;
+     c.fillRect(col*step,row*step,step,step);
+     c.strokeStyle="#333";c.strokeRect(col*step,row*step,step,step);
+     c.fillStyle="#aaa";c.font=`${Math.max(6,step/2)}px Arial`;
+     c.textAlign="center";c.textBaseline="middle";
+     c.fillText(idx,col*step+step/2,row*step+step/2);
+   }
+ }
 }
 </script>
 </body>
