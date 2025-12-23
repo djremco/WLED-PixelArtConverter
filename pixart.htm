@@ -260,3 +260,98 @@ function addressingExample(){
   alert(`Voorbeeld voor ${mode} addressing:\n${txt}`);
 }
 </script>
+<script>
+/**
+ * Visuele preview van alle pixels inclusief positie‑index,
+ * vergelijkbaar met de originele drawBoxes()‑functie (v1.0.8),
+ * maar opgeschoond en responsive.
+ */
+function drawPixelOverlay(pixels, width, height) {
+  const ctx2 = canvas.getContext("2d");
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+  const scale = Math.floor(Math.min(winW / (width * 2), winH / (height * 2)));
+  const step = Math.max(6, scale); // minimaal 6 px per pixelblokje
+
+  canvas.width = width * step;
+  canvas.height = height * step;
+
+  // loop alle pixels
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pos = y * width + x;
+      const p = pixels.find(px => px.idx === pos);
+      const col = p ? p.color : "000000";
+      ctx2.fillStyle = "#" + col;
+      ctx2.fillRect(x * step, y * step, step, step);
+
+      // rand en index‑tekst
+      ctx2.strokeStyle = "#333";
+      ctx2.lineWidth = 1;
+      ctx2.strokeRect(x * step, y * step, step, step);
+      ctx2.fillStyle = "#aaa";
+      ctx2.font = `${Math.max(step/2,6)}px Arial`;
+      ctx2.textAlign = "center";
+      ctx2.textBaseline = "middle";
+      ctx2.fillText(pos, x * step + step / 2, y * step + step / 2);
+    }
+  }
+}
+
+/**
+ * Kleine aanpassing in getPixelRGBValues()
+ * — als preview‑functie na de export bijroepen.
+ */
+const _oldGetPixelRGBValues = getPixelRGBValues;
+getPixelRGBValues = function(img) {
+  _oldGetPixelRGBValues.call(this, img);  // originele export uitvoeren
+
+  // opnieuw berekenen van pixels voor overlay:
+  const width = parseInt(gId('sizeX').value);
+  const height = parseInt(gId('sizeY').value);
+  const layout = gId('ledSetupSelector').value;
+  const data = ctx.getImageData(0, 0, width, height).data;
+  const previewPixels = [];
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i+1], b = data[i+2];
+    const idx = i/4, row = Math.floor(idx/width), col = idx%width;
+    let pos = idx;
+
+    if (layout === "matrix_v_serp") {
+      pos = col%2===0 ? col*height+row : col*height+(height-1-row);
+    } else if (layout === "matrix") {
+      pos = row*width+col;
+    } else {
+      const reverse = (layout === "r2l");
+      const dir = (row%2===0 ? !reverse : reverse);
+      pos = dir ? (row*width+col) : (row*width+(width-1-col));
+    }
+
+    const hex = ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+    previewPixels.push({ idx: pos, color: hex });
+  }
+  previewPixels.sort((a,b)=>a.idx-b.idx);
+  drawPixelOverlay(previewPixels, width, height);
+};
+
+// optioneel: autom. opnieuw tekenen bij venster‑resizing
+window.addEventListener("resize", ()=> {
+  if (output.value.trim().length>0) {
+    const width = parseInt(gId('sizeX').value);
+    const height = parseInt(gId('sizeY').value);
+    const data = ctx.getImageData(0, 0, width, height).data;
+    if (data) {
+      const pxs=[];
+      for (let i=0;i<data.length;i+=4) {
+        const r=data[i],g=data[i+1],b=data[i+2];
+        const hex=((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+        pxs.push({idx:i/4,color:hex});
+      }
+      drawPixelOverlay(pxs,width,height);
+    }
+  }
+});
+</script>
+</body>
+</html>
