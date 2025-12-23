@@ -234,14 +234,13 @@ const rowRot = (w - 1) - col;
    let pos=idx;
 
 if (layout === "matrix_v_serp") {
-  // --- Vertical serpentine mapping (boven→beneden, kolom per kolom) ---
   const start = wiring || "tl";
 
-  // Basis‑coördinaten uit het canvas
-  let r = row; // y‑positie
-  let c = col; // x‑positie
+  // Basis-coördinaten uit het canvas
+  let r = row; // y-positie
+  let c = col; // x-positie
 
-  // Flips voor start‑hoek
+  // Flips voor start-hoek
   if (start[1] === "r") c = (w - 1) - c; // omkeren bij start Rechts
   if (start[0] === "b") r = (h - 1) - r; // omkeren bij start Onder
 
@@ -249,12 +248,9 @@ if (layout === "matrix_v_serp") {
   let colIndex = c;
   let rowIndex = (colIndex % 2 === 0) ? r : (h - 1 - r);
 
-  // Bereken de LED‑index (kolom‐voor‐kolom)
+  // Bereken de LED-index (kolom-voor-kolom)
   pos = colIndex * h + rowIndex;
 }
-
-
-
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
