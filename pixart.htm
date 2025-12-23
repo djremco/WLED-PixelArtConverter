@@ -138,10 +138,27 @@ const ctx=canvas.getContext('2d',{willReadFrequently:true});
 // --- Upload Events -------------
 const dropZone=gId('drop-zone');
 const filePicker=gId('file-picker');
-dropZone.onclick=()=>filePicker.click();
-filePicker.onchange=e=>{const f=e.target.files[0];if(f)loadImage(f);};
-dropZone.ondragover=e=>e.preventDefault();
-dropZone.ondrop=e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)loadImage(f);};
+// --- Upload Events -------------
+const dropZone = gId('drop-zone');
+const filePicker = gId('file-picker');
+
+// ✔ klik in drop-zone opent file dialoog
+dropZone.addEventListener("click", () => filePicker.click());   
+
+// ✔ wanneer je iets kiest
+filePicker.addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) loadImage(f);
+});
+
+// ✔ drag & drop
+dropZone.addEventListener("dragover", e => e.preventDefault());
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f) loadImage(f);
+});
+
 
 // --- Copy & Download -----------
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
