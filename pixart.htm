@@ -162,7 +162,7 @@ function exportPixels(pixels,set){
    const part=pixels.slice(i,i+colorLimit);
    const seg={
      on:true,bri:brightness,
-     seg:{id:segment,i:part.map(p=>colorFormat==="dec"?col(p.color):p.color)}
+     seg:{id:segment,i:part.map(p=>[p.idx, colorFormat==="dec"?col(p.color):p.color])}
    };
    chunks.push(seg);
  }
@@ -233,6 +233,8 @@ function getPixelRGBValues(img){
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
+console.log(`Pixel ${pos} → (${col}, ${row}) Color #${hex}`);
+
  }
  pixels.sort((a,b)=>a.idx-b.idx);
  const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
