@@ -105,6 +105,18 @@ textarea{
 
 <!-- ========= JavaScript Section ========= -->
 <script>
+// --- LoadImage: leest het geselecteerde bestand en roept de converter aan ---
+function loadImage(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => getPixelRGBValues(img);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 const d=document;
 function gId(i){return d.getElementById(i);}
 const canvas=gId('pixelCanvas');
