@@ -282,26 +282,27 @@ async function getSegments(){
 
 // --- overlay -----------------
 function drawPixelOverlay(pixels, w, h, layout) {
-  const start = gId("wiringStart").value;
   const c2 = canvas.getContext("2d");
   const step = Math.max(6, Math.floor(window.innerWidth / (w * 2)));
   canvas.width = w * step;
   canvas.height = h * step;
   c2.clearRect(0, 0, canvas.width, canvas.height);
 
+  function mapLEDMatrix(col, row) {
+    const rotCol = (w - 1) - col;
+    const rotRow = (h - 1) - row;
+
+    const isOddColumn = rotCol % 2 !== 0;
+    const mappedRow = isOddColumn 
+      ? (h - 1 - rotRow)  // Oneven kolommen omkeren
+      : rotRow;           // Even kolommen normaal
+
+    return rotCol * h + mappedRow;
+  }
+
   for (let col = 0; col < w; col++) {
     for (let row = 0; row < h; row++) {
-      // 180-graden rotatie
-      const rotCol = (w - 1) - col;
-      const rotRow = (h - 1) - row;
-
-      // Serpentine mapping
-      const isOddColumn = rotCol % 2 !== 0;
-      const mappedRow = isOddColumn 
-        ? (h - 1 - rotRow)  // Oneven kolommen omkeren
-        : rotRow;           // Even kolommen normaal
-
-      const idx = rotCol * h + mappedRow;
+      const idx = mapLEDMatrix(col, row);
       const p = pixels.find(px => px.idx === idx);
       const colr = p ? p.color : "000000";
 
@@ -318,6 +319,7 @@ function drawPixelOverlay(pixels, w, h, layout) {
     }
   }
 }
+
 
 
 </script>
