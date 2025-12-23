@@ -265,9 +265,20 @@ function drawPixelOverlay(pixels,w,h,layout){
  const step=Math.max(6,Math.floor(window.innerWidth/(w*2)));
  canvas.width=w*step;canvas.height=h*step;
  c.clearRect(0,0,canvas.width,canvas.height);
- for(let col=0;col<w;col++){
-   for(let row=0;row<h;row++){
-     let idx;
+const start = gId('wiringStart').value;
+for (let col = 0; col < w; col++) {
+  for (let row = 0; row < h; row++) {
+    let c = col, r = row;
+    // Hoek‑flips
+    if (start[1] === "r") c = (w - 1) - col;
+    if (start[0] === "b") r = (h - 1) - row;
+    // Serpentine
+    let colIndex = c;
+    let rowIndex = r;
+    if ((start[1] === "r") ? ((w - 1 - col) % 2 === 0) : (col % 2 === 0)) {
+      rowIndex = (h - 1) - r;
+    }
+    const idx = colIndex * h + rowIndex;
 if (layout === "matrix_v_serp") {
   // === WLED-compatible vertical serpentine fix ===
   let c = col;
