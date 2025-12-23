@@ -139,6 +139,17 @@ gId('downloadJSON').onclick=()=>{
  const b=new Blob([gId('JSONled').value],{type:'application/json'});
  const a=d.createElement('a');a.href=URL.createObjectURL(b);a.download='wled_pixel_data.json';a.click();
 };
+// --- LoadImage: leest het geselecteerde bestand in en roept converter aan ---
+function loadImage(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => getPixelRGBValues(img);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 // --- Exportfunctie (definitief) ---
 function exportPixels(pixels,set){
