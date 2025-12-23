@@ -242,15 +242,17 @@ if (layout === "matrix_v_serp") {
   const w = 23;  // breedte matrix
   const h = 26;  // hoogte matrix
   
-  // 180 graden rotatie met serpentine routing
+  // 180 graden rotatie
   const colRot = (w - 1) - col;
   const rowRot = (h - 1) - row;
   
-  // Spiegelen van elke oneven kolom
-  pos = colRot * h + (colRot % 2 === 1 
-    ? (h - 1 - rowRot) 
-    : rowRot);
+  // Serpentine mapping met geïnverteerde routing
+  pos = colRot * h + (colRot % 2 === 0 
+    ? (h - 1 - rowRot)  // Even kolommen: bottom → top
+    : rowRot             // Oneven kolommen: top → bottom
+  );
 }
+
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
