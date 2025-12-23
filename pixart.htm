@@ -237,9 +237,9 @@ if (layout === "matrix_v_serp") {
   // --- WLED‑compatible horizontal serpentine mapping (definitieve en schone versie) ---
   const start = wiring || "tl";
 
-  // Volledige 180°-draai zodat de oriëntatie met WLED overeenkomt
-  let r = (h - 1) - row;  // onder ↔ boven
-  let c = (w - 1) - col;  // links ↔ rechts
+// Spiegel alleen verticaal (onder/boven)
+let r = row;
+let c = (w - 1) - col;
 
   // Flips voor start-hoeken (handhaaft richting in tooling)
   if (start[1] === "r") c = (w - 1) - c;
