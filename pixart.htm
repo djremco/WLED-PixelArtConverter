@@ -212,7 +212,15 @@ function exportPixels(pixels,set){
     arr.push(JSON.stringify(seg));
   }
 
-  if(outputMode==="wled") return arr.join("\n");
+  if(outputMode==="wled") {
+  if (arr.length === 1) return arr[0];
+  // combineer meerdere chunks in één array, zodat JSON geldig blijft
+  const merged = arr.map(a => JSON.parse(a));
+  const mergedArray = merged.map(m => m.seg.i).flat();
+  const first = merged[0];
+  first.seg.i = mergedArray;
+  return JSON.stringify(first);
+}
   if(outputMode==="curl") return arr.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${j}'`).join("\n");
   if(outputMode==="ha") return `# Home Assistant YAML\n- platform: command_line\n  switches:\n    pixel_display:\n      friendly_name: Pixel Display\n      command_on: >\n        ${arr.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${j}'`).join(" && ")}\n      command_off: >\n        curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '{"on":false}'`;
   return "";
