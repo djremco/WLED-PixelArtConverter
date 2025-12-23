@@ -201,10 +201,18 @@ function getPixelRGBValues(img){
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
  }
- pixels.sort((a,b)=>a.idx-b.idx);
- const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
- gId('JSONled').value=exportPixels(pixels,settings);
- drawPixelOverlay(pixels,w,h,layout);
+pixels.sort((a,b)=>a.idx-b.idx);
+const settings = { brightness: bri, segment, colorFormat, addressing, outputMode, device, colorLimit };
+
+// 1️⃣ JSON altijd eerst opslaan (blijft werken)
+const jsonText = exportPixels(pixels, settings);
+gId('JSONled').value = jsonText;
+
+// 2️⃣ Failsafe overlay
+try {
+  drawPixelOverlay(pixels, w, h, layout);
+} catch (e) {
+  console.warn("Overlay kon niet getekend worden:", e.message);
 }
 
 // --- voorbeeld en API ----
