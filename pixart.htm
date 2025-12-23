@@ -225,8 +225,8 @@ function getPixelRGBValues(img){
  for(let i=0;i<data.length;i+=4){
    const R=data[i],G=data[i+1],B=data[i+2];
    const idx = i / 4;
-   const col = Math.floor(idx / h);
-   const row = idx % h;
+   const row = Math.floor(idx / w);
+   const col = idx % w;
    let pos=idx;
 
 if(layout==="matrix_v_serp"){
