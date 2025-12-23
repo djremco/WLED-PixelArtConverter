@@ -110,13 +110,29 @@ function gId(i){return d.getElementById(i);}
 const canvas=gId('pixelCanvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
 
-// --- Upload handling ---
-gId('drop-zone').addEventListener('click',()=>gId('file-picker').click());
-gId('file-picker').addEventListener('change',e=>loadImage(e.target.files[0]));
-gId('drop-zone').addEventListener('dragover',e=>e.preventDefault());
-gId('drop-zone').addEventListener('drop',e=>{e.preventDefault();loadImage(e.dataTransfer.files[0]);});
-function loadImage(f){const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>getPixelRGBValues(img);img.src=r.result;};r.readAsDataURL(f);}
+// --- Upload & click handling (fix: file picker popup) ---
+const dropZone = gId('drop-zone');
+const filePicker = gId('file-picker');
 
+// klik overal in het vlak
+dropZone.onclick = () => {
+  // Microsoft Edge / Chrome vereisen asynchroon click‐trigger
+  setTimeout(()=> filePicker.click(), 0);
+};
+
+// als bestand gekozen
+filePicker.onchange = e => {
+  const file = e.target.files[0];
+  if (file) loadImage(file);
+};
+
+// support voor drag‑en‑drop
+dropZone.ondragover = e => e.preventDefault();
+dropZone.ondrop = e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) loadImage(file);
+};
 // --- Copy & Download ---
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
 gId('downloadJSON').onclick=()=>{
