@@ -234,29 +234,19 @@ const rowRot = (w - 1) - col;
    let pos=idx;
 
 if (layout === "matrix_v_serp") {
-  const start = wiring || "tl";
-  const w = parseInt(gId('sizeX').value);
-  const h = parseInt(gId('sizeY').value);
-
-  // Basis-coördinaten uit het canvas
-  let r = row; // y-positie
-  let c = col; // x-positie
-
-  // Flips voor start-hoek
-  if (start[1] === "r") c = (w - 1) - c; // omkeren bij start Rechts
-  if (start[0] === "b") r = (h - 1) - r; // omkeren bij start Onder
-
-  // Verticale serpentine: zelfs genummerde kolommen top→bottom, oneven bottom→top
-  let colIndex = c;
-  let rowIndex = (colIndex % 2 === 0) 
-    ? r 
-    : (h - 1 - r);
-
-  // Bereken de LED-index (kolom-voor-kolom)
-  pos = colIndex * h + rowIndex;
-
-  // Debug logging
-  console.log(`Original (${col},${row}) → Mapped (${colIndex},${rowIndex}) = LED Index ${pos}`);
+  const w = 23;  // vaste breedte
+  const h = 26;  // vaste hoogte
+  
+  // Basis-coördinaten
+  const col = Math.floor(idx / h);
+  const row = idx % h;
+  
+  // Serpentine mapping: kolommen alterneren
+  const isReversedColumn = col % 2 === 1;
+  
+  pos = isReversedColumn 
+    ? (col * h) + (h - 1 - row)  // omgekeerde kolommen
+    : (col * h) + row;            // normale kolommen
 }
 
 
