@@ -304,17 +304,6 @@ function drawPixelOverlay(pixels, w, h, layout) {
   }
 }
 
-     const p=pixels.find(px=>px.idx===idx);
-     const colr=p?p.color:"000000";
-     c.fillStyle="#"+colr;
-     c.fillRect(col*step,row*step,step,step);
-     c.strokeStyle="#333";c.strokeRect(col*step,row*step,step,step);
-     c.fillStyle="#aaa";c.font=`${Math.max(6,step/2)}px Arial`;
-     c.textAlign="center";c.textBaseline="middle";
-     c.fillText(idx,col*step+step/2,row*step+step/2);
-   }
- }
-}
 </script>
 </body>
 </html>
