@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>WLED Pixel Art Converter v2.3</title>
+<title>WLED Pixel Art Converter v2.3</title>
 <style>
 body{
   font-family:Arial,sans-serif;
@@ -37,8 +37,85 @@ textarea{
 </head>
 
 <body>
-<!-- Rest van je HTML blijft hetzelfde -->
+<div class="container">
+  <h1>🧩 WLED Pixel Art Converter v2.3</h1>
+  <h2>Vertical Serpentine + Wiring Direction Selector</h2>
 
+  <table>
+    <tr>
+      <td><label>LED Layout:</label></td>
+      <td>
+        <select id="ledSetupSelector">
+          <option value="matrix">2D Matrix (horizontal)</option>
+          <option value="r2l">Serpentine row → left</option>
+          <option value="l2r">Serpentine row → right</option>
+          <option value="matrix_v_serp" selected>Vertical serpentine (top‑bottom ↑↓)</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Output format:</label></td>
+      <td>
+        <select id="outputMode">
+          <option value="wled" selected>WLED JSON</option>
+          <option value="curl">CURL commands</option>
+          <option value="ha">Home Assistant YAML</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Color format:</label></td>
+      <td>
+        <select id="colorFormat">
+          <option value="hex" selected>HEX ("RRGGBB")</option>
+          <option value="dec">DEC (R,G,B)</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Addressing mode:</label></td>
+      <td>
+        <select id="addressingMode">
+          <option value="single">Single</option>
+          <option value="range">Range (start,end,color)</option>
+          <option value="hybrid" selected>Hybrid (color,start,end,color)</option>
+        </select>
+        <button onclick="addressingExample()" style="margin-left:8px">example</button>
+      </td>
+    </tr>
+    <tr><td><label>Brightness:</label></td><td><input type="range" id="brightness" min="1" max="255" value="128"></td></tr>
+    <tr><td><label>Max colors / JSON:</label></td><td><input type="number" id="colorLimit" min="1" max="8192" value="256"></td></tr>
+    <tr><td><label>Width (px):</label></td><td><input type="number" id="sizeX" value="23"></td></tr>
+    <tr><td><label>Height (px):</label></td><td><input type="number" id="sizeY" value="26"></td></tr>
+
+    <!-- 🧭 nieuwe wiring selector -->
+    <tr>
+      <td><label>Wiring start:</label></td>
+      <td>
+        <select id="wiringStart">
+          <option value="tl" selected>Top‑Left (standaard)</option>
+          <option value="tr">Top‑Right</option>
+          <option value="bl">Bottom‑Left</option>
+          <option value="br">Bottom‑Right</option>
+        </select>
+      </td>
+    </tr>
+
+    <tr><td><label>Device IP:</label></td><td><input type="text" id="deviceIP" value="192.168.0.100"></td></tr>
+    <tr><td><label>Segment ID:</label></td><td><input type="number" id="segmentID" value="0"></td></tr>
+  </table>
+
+  <div id="drop-zone">Drop image here or click to upload</div>
+  <input type="file" id="file-picker" style="display:none">
+  <canvas id="pixelCanvas"></canvas>
+  <textarea id="JSONled" readonly></textarea>
+  <div class="button-row">
+    <button id="copyJSON">Copy Output</button>
+    <button id="downloadJSON">Download Output</button>
+  </div>
+</div>
+
+<!-- ========= JavaScript Section ========= -->
 <script>
 // --- LoadImage -----------------
 function loadImage(file) {
@@ -144,47 +221,46 @@ function getPixelRGBValues(img){
  ctx.drawImage(img,0,0,w,h);
  const data=ctx.getImageData(0,0,w,h).data;
  const pixels=[];
- 
- function mapLEDMatrix(col, row) {
-   const w = 23;  // breedte
-   const h = 26;  // hoogte
-
-   // 180-graden rotatie
-   const rotCol = (w - 1) - col;
-   const rotRow = (h - 1) - row;
-
-   // Serpentine mapping
-   const isOddColumn = rotCol % 2 !== 0;
-   const mappedRow = isOddColumn 
-     ? (h - 1 - rotRow)  // Oneven kolommen omkeren
-     : rotRow;           // Even kolommen normaal
-
-   return rotCol * h + mappedRow;
- }
-
  for(let i=0;i<data.length;i+=4){
    const R=data[i],G=data[i+1],B=data[i+2];
    const idx = i / 4;
    const row = Math.floor(idx / w);
    const col = idx % w;
+   // beeld 90° draaien zodat mapping met WLED overeenkomt
+const colRot = row;
+const rowRot = (w - 1) - col;
 
-   const pos = mapLEDMatrix(col, row);
-   const hex = ((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
-   
-   pixels.push({idx:pos, color:hex});
-   console.log(`Pixel ${pos} → (${col}, ${row}) Color #${hex}`);
+   let pos=idx;
+// Matreix Build
+function mapLEDMatrix(col, row) {
+  const w = 23;  // breedte
+  const h = 26;  // hoogte
+
+  // 180-graden rotatie
+  const rotCol = (w - 1) - col;
+  const rotRow = (h - 1) - row;
+
+  // Serpentine mapping
+  const isOddColumn = rotCol % 2 !== 0;
+  const mappedRow = isOddColumn 
+    ? (h - 1 - rotRow)  // Oneven kolommen omkeren
+    : rotRow;           // Even kolommen normaal
+
+  const ledIndex = rotCol * h + mappedRow;
+  
+  return ledIndex;
+}
+
+   const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
+   pixels.push({idx:pos,color:hex});
+console.log(`Pixel ${pos} → (${col}, ${row}) Color #${hex}`);
+
  }
- 
  pixels.sort((a,b)=>a.idx-b.idx);
  const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
  const jsonText=exportPixels(pixels,settings);
  gId('JSONled').value=jsonText;
- 
- try {
-   drawPixelOverlay(pixels,w,h,layout);
- } catch(e) {
-   console.warn("Overlay kon niet getekend worden:", e.message);
- }
+ try{drawPixelOverlay(pixels,w,h,layout);}catch(e){console.warn("Overlay kon niet getekend worden:",e.message);}
 }
 
 // --- voorbeeld & API ----------
@@ -194,40 +270,47 @@ function addressingExample(){
  if(m==="single")t='["ff0000","00ff00","0000ff"]';
  if(m==="range")t='[10,15,"ffaa00"]';
  if(m==="hybrid")t='["ffaa00",0,5,"00ff00"]';
- alert(`Voorbeeld (${m}) → ${t}`);
+ alert(`Voorbeeld (${m}) → ${t}`);
 }
-
 async function getSegments(){
  const ip=gId('deviceIP').value;
- try{
-   const r=await fetch(`http://${ip}/json/state`);
-   const j=await r.json();
-   if(j.seg)console.log("Segments:",j.seg.length,j.seg);
- }catch(e){
-   console.warn("Segment API error:",e);
- }
+ try{const r=await fetch(`http://${ip}/json/state`);
+     const j=await r.json();
+     if(j.seg)console.log("Segments:",j.seg.length,j.seg);
+ }catch(e){console.warn("Segment API error:",e);}
 }
 
 // --- overlay -----------------
 function drawPixelOverlay(pixels, w, h, layout) {
+  console.log("Pixels ontvangen:", pixels);
+  console.log("Breedte:", w, "Hoogte:", h);
+
   const c2 = canvas.getContext("2d");
   const step = Math.max(6, Math.floor(window.innerWidth / (w * 2)));
   canvas.width = w * step;
   canvas.height = h * step;
   c2.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Exacte mapping functie
   function mapLEDMatrix(col, row) {
-    // 180-graden rotatie
     const rotCol = (w - 1) - col;
     const rotRow = (h - 1) - row;
 
-    // Serpentine mapping met geïnverteerde routing
     const isOddColumn = rotCol % 2 !== 0;
     const mappedRow = isOddColumn 
       ? (h - 1 - rotRow)  // Oneven kolommen omkeren
       : rotRow;           // Even kolommen normaal
 
-    return rotCol * h + mappedRow;
+    const idx = rotCol * h + mappedRow;
+    
+    console.log(`
+      Input: (col=${col}, row=${row})
+      Rotated: (rotCol=${rotCol}, rotRow=${rotRow})
+      Mapped: (mappedRow=${mappedRow})
+      LED Index: ${idx}
+    `);
+
+    return idx;
   }
 
   for (let col = 0; col < w; col++) {
@@ -236,7 +319,6 @@ function drawPixelOverlay(pixels, w, h, layout) {
       const p = pixels.find(px => px.idx === idx);
       const colr = p ? p.color : "000000";
 
-      // pixelvakje tekenen
       c2.fillStyle = "#" + colr;
       c2.fillRect(col * step, row * step, step, step);
       c2.strokeStyle = "#333";
@@ -249,6 +331,9 @@ function drawPixelOverlay(pixels, w, h, layout) {
     }
   }
 }
+
+
+
 </script>
 </body>
 </html>
