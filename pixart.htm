@@ -282,17 +282,6 @@ async function getSegments(){
 
 // --- overlay -----------------
 function drawPixelOverlay(pixels, w, h, layout) {
-  console.log("Pixels ontvangen:", pixels);
-  console.log("Breedte:", w, "Hoogte:", h);
-
-  const c2 = canvas.getContext("2d");
-  const step = Math.max(6, Math.floor(window.innerWidth / (w * 2)));
-  canvas.width = w * step;
-  canvas.height = h * step;
-  c2.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Exacte mapping functie
-function drawPixelOverlay(pixels, w, h, layout) {
   const c2 = canvas.getContext("2d");
   const step = Math.max(6, Math.floor(window.innerWidth / (w * 2)));
   canvas.width = w * step;
