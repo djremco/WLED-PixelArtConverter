@@ -232,12 +232,25 @@ function exportPixels(pixels, set) {
   }
 
   // ——— combineer chunks (voor WLED import één JSON, voor curl één per POST) ———
-  if (outputMode === "wled") {
-    if (chunks.length === 1) return JSON.stringify(chunks[0]);
-    const merged = chunks.reduce((acc, cur) => acc.concat(cur.seg.i), []);
-    const mergedObj = { on: true, bri: brightness, seg: { id: segment, i: merged } };
-    return JSON.stringify(mergedObj);
-  }
+if (outputMode === "wled") {
+  // Combineer alle chunks tot één geldig JSON-object
+  if (arr.length === 1) return arr[0];
+
+  // Maak directe objecten van strings
+  const merged = arr.map(a => JSON.parse(a));
+
+  // Voeg alle kleurarrays samen
+  const mergedColors = merged.flatMap(m => m.seg.i);
+
+  // Bouw één object
+  const mergedObj = {
+    on: true,
+    bri: brightness,
+    seg: { id: segment, i: mergedColors }
+  };
+
+  return JSON.stringify(mergedObj);
+}
 
   if (outputMode === "curl") {
     return chunks
