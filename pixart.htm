@@ -242,17 +242,21 @@ if (layout === "matrix_v_serp") {
   const w = 23;  // breedte matrix
   const h = 26;  // hoogte matrix
   
-  // 90 graden rotatie tegen de klok in
-  const colRot = (h - 1) - row;
-  const rowRot = col;
+  // 180 graden rotatie
+  const colRot = (w - 1) - col;
+  const rowRot = (h - 1) - row;
   
-  // Bepaal of de rij gespiegeld moet worden
-  const shouldMirror = Math.floor(rowRot / h) % 2 === 1;
-  const mirroredRowRot = shouldMirror ? (h - 1 - (rowRot % h)) : (rowRot % h);
+  // Spiegelen van elke even rij
+  const mirroredRowRot = rowRot % 2 === 1 
+    ? (h - 1 - (rowRot % h)) 
+    : (rowRot % h);
   
   // Serpentine mapping met rotatie en spiegeling
-  pos = colRot * h + (colRot % 2 === 0 ? mirroredRowRot : (h - 1 - mirroredRowRot));
+  pos = colRot * h + (colRot % 2 === 0 
+    ? mirroredRowRot 
+    : (h - 1 - mirroredRowRot));
 }
+
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
