@@ -291,23 +291,17 @@ function drawPixelOverlay(pixels, w, h, layout) {
 
   for (let col = 0; col < w; col++) {
     for (let row = 0; row < h; row++) {
-      let c = col;
-      let r = row;
+      // 180-graden rotatie
+      const rotCol = (w - 1) - col;
+      const rotRow = (h - 1) - row;
 
-      // flips voor start-hoeken
-      if (start[1] === "r") c = (w - 1) - col;
-      if (start[0] === "b") r = (h - 1) - row;
+      // Serpentine mapping
+      const isOddColumn = rotCol % 2 !== 0;
+      const mappedRow = isOddColumn 
+        ? (h - 1 - rotRow)  // Oneven kolommen omkeren
+        : rotRow;           // Even kolommen normaal
 
-      // serpentine kolommen: even/oneven omgedraaid
-      let colIndex = c;
-      let rowIndex = r;
-      if ((start[1] === "r")
-            ? ((w - 1 - col) % 2 === 1)
-            : (col % 2 === 1)) {
-        rowIndex = (h - 1) - r;
-      }
-
-      const idx = colIndex * h + rowIndex;
+      const idx = rotCol * h + mappedRow;
       const p = pixels.find(px => px.idx === idx);
       const colr = p ? p.color : "000000";
 
@@ -324,6 +318,7 @@ function drawPixelOverlay(pixels, w, h, layout) {
     }
   }
 }
+
 
 </script>
 </body>
