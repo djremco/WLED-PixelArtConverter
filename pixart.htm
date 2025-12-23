@@ -227,27 +227,33 @@ function getPixelRGBValues(img){
    const idx = i / 4;
    const row = Math.floor(idx / w);
    const col = idx % w;
+   // beeld 90° draaien zodat mapping met WLED overeenkomt
+const colRot = row;
+const rowRot = (w - 1) - col;
+
    let pos=idx;
 
-if(layout==="matrix_v_serp"){
-  // WLED-compatibele verticale serpentine mapping
-  const start = wiring || "tl"; // veiligheid
-  let c = col, r = row;
-  // Flip horizontaal voor start Right-hoeken
-  if(start[1] === "r") c = (w - 1) - col;
-  // Flip verticaal voor start Bottom-hoeken
-  if(start[0] === "b") r = (h - 1) - row;
+if (layout === "matrix_v_serp") {
+  // --- WLED‑compatible horizontal serpentine mapping (definitieve fix) ---
+  const start = wiring || "tl";
 
-// --- WLED‑compatible horizontal serpentine mapping ---
-let colIndex = c;
-let rowIndex = r;
+  // Draai 90° terug zodat rijen/kolommen overeenkomen met WLED
+  let r = col;             // verwissel kolom en rij
+  let c = (h - 1) - row;   // en spiegel verticaal
 
-// serpentine: om-en-om L→R / R→L
-if (row % 2 === 1) colIndex = (w - 1) - c;
+  // Flips voor start-hoeken
+  if (start[1] === "r") c = (w - 1) - c;
+  if (start[0] === "b") r = (h - 1) - r;
 
-// *belangrijk:* in WLED loopt index horizontaal per rij
-pos = rowIndex * w + colIndex;
+  // Serpentine: om-en-om links/rechts
+  let colIndex = c;
+  let rowIndex = r;
+  if (rowIndex % 2 === 1) colIndex = (w - 1) - c;
+
+  // In WLED loopt de index horizontaal per rij
+  pos = rowIndex * w + colIndex;
 }
+
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
