@@ -162,7 +162,7 @@ function exportPixels(pixels,set){
    const part=pixels.slice(i,i+colorLimit);
    const seg={
      on:true,bri:brightness,
-     seg:{id:segment,i:part.map(p=>[p.idx, colorFormat==="dec"?col(p.color):p.color])}
+     seg:{id:segment,i:part.map(p=>colorFormat==="dec"?col(p.color):p.color)}
    };
    chunks.push(seg);
  }
