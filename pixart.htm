@@ -136,22 +136,19 @@ const canvas=gId('pixelCanvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
 
 // --- Upload Events -------------
-const dropZone=gId('drop-zone');
-const filePicker=gId('file-picker');
-// --- Upload Events -------------
 const dropZone = gId('drop-zone');
 const filePicker = gId('file-picker');
 
-// ✔ klik in drop-zone opent file dialoog
-dropZone.addEventListener("click", () => filePicker.click());   
+// klik in drop-zone opent file dialoog
+dropZone.addEventListener("click", () => filePicker.click());
 
-// ✔ wanneer je iets kiest
+// wanneer iets gekozen wordt
 filePicker.addEventListener("change", e => {
   const f = e.target.files[0];
   if (f) loadImage(f);
 });
 
-// ✔ drag & drop
+// drag & drop
 dropZone.addEventListener("dragover", e => e.preventDefault());
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
