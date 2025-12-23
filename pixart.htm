@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>WLED Pixel Art Converter v2.1</title>
+<title>WLED Pixel Art Converter v2.2</title>
 <style>
 body{
   font-family:Arial,sans-serif;
@@ -30,9 +30,7 @@ textarea{
   border:1px solid #333;border-radius:6px;
   font-family:monospace;padding:8px;margin-top:10px;
 }
-#pixelCanvas{
-  width:100%;background:#000;border:1px solid #333;margin-top:10px;
-}
+#pixelCanvas{width:100%;background:#000;border:1px solid #333;margin-top:10px}
 .button-row{display:flex;gap:10px;margin-top:10px}
 .button-row button{flex:1}
 </style>
@@ -40,8 +38,8 @@ textarea{
 
 <body>
 <div class="container">
-  <h1>🧩 WLED Pixel Art Converter v2.1</h1>
-  <h2>Compatibel met Werkstrom 1.0.8 + Vertical Serpentine fix</h2>
+  <h1>🧩 WLED Pixel Art Converter v2.2</h1>
+  <h2>Werkstrom 1.0.8 functies + Vertical Serpentine fix</h2>
 
   <table>
     <tr>
@@ -105,65 +103,55 @@ textarea{
 
 <!-- ========= JavaScript Section ========= -->
 <script>
-// --- LoadImage: leest het geselecteerde bestand en roept de converter aan ---
+// --- LoadImage: eerste functie zodat handlers hem kennen ---
 function loadImage(file) {
   if (!file) return;
+  console.log("📂 Bestand gekozen:", file.name);
   const reader = new FileReader();
   reader.onload = () => {
+    console.log("🖼️ Bestand gelezen, maak Image‑object aan");
     const img = new Image();
-    img.onload = () => getPixelRGBValues(img);
+    img.onload = () => {
+      console.log("✅ Afbeelding geladen, start conversie");
+      getPixelRGBValues(img);
+    };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 }
 
+// --- globale helpers ---
 const d=document;
 function gId(i){return d.getElementById(i);}
 const canvas=gId('pixelCanvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
 
-// --- Upload & click handling (fix: file picker popup) ---
-const dropZone = gId('drop-zone');
-const filePicker = gId('file-picker');
-
-// klik overal in het vlak
-dropZone.onclick = () => {
-  // Microsoft Edge / Chrome vereisen asynchroon click‐trigger
-  setTimeout(()=> filePicker.click(), 0);
+// --- Upload handlers ---
+const dropZone=gId('drop-zone');
+const filePicker=gId('file-picker');
+dropZone.onclick=()=>filePicker.click();
+filePicker.onchange=e=>{
+  const f=e.target.files[0];
+  if(f) loadImage(f);
 };
-
-// als bestand gekozen
-filePicker.onchange = e => {
-  const file = e.target.files[0];
-  if (file) loadImage(file);
-};
-
-// support voor drag‑en‑drop
-dropZone.ondragover = e => e.preventDefault();
-dropZone.ondrop = e => {
+dropZone.ondragover=e=>e.preventDefault();
+dropZone.ondrop=e=>{
   e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (file) loadImage(file);
+  const f=e.dataTransfer.files[0];
+  if(f) loadImage(f);
 };
+
 // --- Copy & Download ---
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
 gId('downloadJSON').onclick=()=>{
  const b=new Blob([gId('JSONled').value],{type:'application/json'});
- const a=d.createElement('a');a.href=URL.createObjectURL(b);a.download='wled_pixel_data.json';a.click();
+ const a=d.createElement('a');
+ a.href=URL.createObjectURL(b);
+ a.download='wled_pixel_data.json';
+ a.click();
 };
-// --- LoadImage: leest het geselecteerde bestand in en roept converter aan ---
-function loadImage(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => getPixelRGBValues(img);
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
-}
 
-// --- Exportfunctie (definitief) ---
+// --- Export ---
 function exportPixels(pixels,set){
  const{brightness,segment,colorFormat,outputMode,device,colorLimit}=set;
  const col=h=>colorFormat==="dec"
@@ -183,7 +171,7 @@ function exportPixels(pixels,set){
 
  if(outputMode==="wled"){
    if(chunks.length===1) return JSON.stringify(chunks[0]);
-   const merged=chunks.reduce((acc,c)=>acc.concat(c.seg.i),[]);
+   const merged=chunks.reduce((a,c)=>a.concat(c.seg.i),[]);
    const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
    return JSON.stringify(mergedObj);
  }
@@ -192,7 +180,7 @@ function exportPixels(pixels,set){
    return chunks.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${JSON.stringify(j)}'`).join("\n");
 
  if(outputMode==="ha"){
-   const merged=chunks.reduce((acc,c)=>acc.concat(c.seg.i),[]);
+   const merged=chunks.reduce((a,c)=>a.concat(c.seg.i),[]);
    const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
    return `# Home Assistant YAML
 - platform: command_line
@@ -207,7 +195,7 @@ function exportPixels(pixels,set){
  return "";
 }
 
-// --- Hoofdfunctie (met vertical serpentine) ---
+// --- Converter + overlay  ---
 function getPixelRGBValues(img){
  const w=parseInt(gId('sizeX').value);
  const h=parseInt(gId('sizeY').value);
@@ -240,21 +228,15 @@ function getPixelRGBValues(img){
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
  }
-pixels.sort((a,b)=>a.idx-b.idx);
-const settings = { brightness: bri, segment, colorFormat, addressing, outputMode, device, colorLimit };
-
-// 1️⃣ JSON altijd eerst opslaan (blijft werken)
-const jsonText = exportPixels(pixels, settings);
-gId('JSONled').value = jsonText;
-
-// 2️⃣ Failsafe overlay
-try {
-  drawPixelOverlay(pixels, w, h, layout);
-} catch (e) {
-  console.warn("Overlay kon niet getekend worden:", e.message);
+ pixels.sort((a,b)=>a.idx-b.idx);
+ const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
+ const jsonText=exportPixels(pixels,settings);
+ gId('JSONled').value=jsonText;
+ try{ drawPixelOverlay(pixels,w,h,layout); }
+ catch(e){ console.warn("Overlay kon niet getekend worden:",e.message); }
 }
-}
-// --- voorbeeld en API ----
+
+// --- voorbeeld + API ---
 function addressingExample(){
  const m=gId('addressingMode').value;
  let t="";
@@ -272,12 +254,11 @@ async function getSegments(){
  }catch(e){console.warn("Segment API error:",e);}
 }
 
-// --- Visuele overlay: nummering afgestemd op wiring layout ---
+// --- overlay ---
 function drawPixelOverlay(pixels,w,h,layout){
  const c=canvas.getContext("2d");
  const step=Math.max(6,Math.floor(window.innerWidth/(w*2)));
- canvas.width=w*step;
- canvas.height=h*step;
+ canvas.width=w*step; canvas.height=h*step;
  c.clearRect(0,0,canvas.width,canvas.height);
  for(let col=0;col<w;col++){
    for(let row=0;row<h;row++){
@@ -295,9 +276,10 @@ function drawPixelOverlay(pixels,w,h,layout){
      const colr=p?p.color:"000000";
      c.fillStyle="#"+colr;
      c.fillRect(col*step,row*step,step,step);
-     c.strokeStyle="#333";c.strokeRect(col*step,row*step,step,step);
-     c.fillStyle="#aaa";c.font=`${Math.max(6,step/2)}px Arial`;
-     c.textAlign="center";c.textBaseline="middle";
+     c.strokeStyle="#333"; c.strokeRect(col*step,row*step,step,step);
+     c.fillStyle="#aaa";
+     c.font=`${Math.max(6,step/2)}px Arial`;
+     c.textAlign="center"; c.textBaseline="middle";
      c.fillText(idx,col*step+step/2,row*step+step/2);
    }
  }
