@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>WLED Pixel Art Converter v2.2</title>
+<title>WLED Pixel Art Converter v2.3</title>
 <style>
 body{
   font-family:Arial,sans-serif;
@@ -38,8 +38,8 @@ textarea{
 
 <body>
 <div class="container">
-  <h1>🧩 WLED Pixel Art Converter v2.2</h1>
-  <h2>Werkstrom 1.0.8 functies + Vertical Serpentine fix</h2>
+  <h1>🧩 WLED Pixel Art Converter v2.3</h1>
+  <h2>Vertical Serpentine + Wiring Direction Selector</h2>
 
   <table>
     <tr>
@@ -87,6 +87,20 @@ textarea{
     <tr><td><label>Max colors / JSON:</label></td><td><input type="number" id="colorLimit" min="1" max="8192" value="256"></td></tr>
     <tr><td><label>Width (px):</label></td><td><input type="number" id="sizeX" value="23"></td></tr>
     <tr><td><label>Height (px):</label></td><td><input type="number" id="sizeY" value="26"></td></tr>
+
+    <!-- 🧭 nieuwe wiring selector -->
+    <tr>
+      <td><label>Wiring start:</label></td>
+      <td>
+        <select id="wiringStart">
+          <option value="tl" selected>Top‑Left (standaard)</option>
+          <option value="tr">Top‑Right</option>
+          <option value="bl">Bottom‑Left</option>
+          <option value="br">Bottom‑Right</option>
+        </select>
+      </td>
+    </tr>
+
     <tr><td><label>Device IP:</label></td><td><input type="text" id="deviceIP" value="192.168.0.100"></td></tr>
     <tr><td><label>Segment ID:</label></td><td><input type="number" id="segmentID" value="0"></td></tr>
   </table>
@@ -103,82 +117,63 @@ textarea{
 
 <!-- ========= JavaScript Section ========= -->
 <script>
-// --- LoadImage: eerste functie zodat handlers hem kennen ---
+// --- LoadImage -----------------
 function loadImage(file) {
   if (!file) return;
-  console.log("📂 Bestand gekozen:", file.name);
   const reader = new FileReader();
   reader.onload = () => {
-    console.log("🖼️ Bestand gelezen, maak Image‑object aan");
     const img = new Image();
-    img.onload = () => {
-      console.log("✅ Afbeelding geladen, start conversie");
-      getPixelRGBValues(img);
-    };
+    img.onload = () => getPixelRGBValues(img);
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 }
 
-// --- globale helpers ---
+// --- Help functies -------------
 const d=document;
 function gId(i){return d.getElementById(i);}
 const canvas=gId('pixelCanvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
 
-// --- Upload handlers ---
+// --- Upload Events -------------
 const dropZone=gId('drop-zone');
 const filePicker=gId('file-picker');
 dropZone.onclick=()=>filePicker.click();
-filePicker.onchange=e=>{
-  const f=e.target.files[0];
-  if(f) loadImage(f);
-};
+filePicker.onchange=e=>{const f=e.target.files[0];if(f)loadImage(f);};
 dropZone.ondragover=e=>e.preventDefault();
-dropZone.ondrop=e=>{
-  e.preventDefault();
-  const f=e.dataTransfer.files[0];
-  if(f) loadImage(f);
-};
+dropZone.ondrop=e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)loadImage(f);};
 
-// --- Copy & Download ---
+// --- Copy & Download -----------
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
 gId('downloadJSON').onclick=()=>{
  const b=new Blob([gId('JSONled').value],{type:'application/json'});
  const a=d.createElement('a');
- a.href=URL.createObjectURL(b);
- a.download='wled_pixel_data.json';
- a.click();
+ a.href=URL.createObjectURL(b);a.download='wled_pixel_data.json';a.click();
 };
 
-// --- Export ---
+// --- Export --------------------
 function exportPixels(pixels,set){
  const{brightness,segment,colorFormat,outputMode,device,colorLimit}=set;
  const col=h=>colorFormat==="dec"
    ? [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]
    : h;
-
  const chunks=[];
  for(let i=0;i<pixels.length;i+=colorLimit){
    const part=pixels.slice(i,i+colorLimit);
    const seg={
-     on:true,
-     bri:brightness,
+     on:true,bri:brightness,
      seg:{id:segment,i:part.map(p=>colorFormat==="dec"?col(p.color):p.color)}
    };
    chunks.push(seg);
  }
-
  if(outputMode==="wled"){
-   if(chunks.length===1) return JSON.stringify(chunks[0]);
+   if(chunks.length===1)return JSON.stringify(chunks[0]);
    const merged=chunks.reduce((a,c)=>a.concat(c.seg.i),[]);
    const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
    return JSON.stringify(mergedObj);
  }
-
  if(outputMode==="curl")
    return chunks.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${JSON.stringify(j)}'`).join("\n");
-
  if(outputMode==="ha"){
    const merged=chunks.reduce((a,c)=>a.concat(c.seg.i),[]);
    const mergedObj={on:true,bri:brightness,seg:{id:segment,i:merged}};
@@ -195,7 +190,7 @@ function exportPixels(pixels,set){
  return "";
 }
 
-// --- Converter + overlay  ---
+// --- Converter / mapping -------
 function getPixelRGBValues(img){
  const w=parseInt(gId('sizeX').value);
  const h=parseInt(gId('sizeY').value);
@@ -207,6 +202,7 @@ function getPixelRGBValues(img){
  const device=gId('deviceIP').value;
  const segment=parseInt(gId('segmentID').value);
  const colorLimit=parseInt(gId('colorLimit').value);
+ const wiring=gId('wiringStart').value;
 
  canvas.width=w;canvas.height=h;
  ctx.drawImage(img,0,0,w,h);
@@ -216,15 +212,25 @@ function getPixelRGBValues(img){
    const R=data[i],G=data[i+1],B=data[i+2];
    const idx=i/4,row=Math.floor(idx/w),col=idx%w;
    let pos=idx;
-   if(layout==="matrix_v_serp")
-     pos=col%2===0?col*h+row:col*h+(h-1-row);
-   else if(layout==="matrix")
+
+   if(layout==="matrix_v_serp"){
+     // verticale serpentine met 4 hoeken
+     if(wiring==="tl")
+       pos=col%2===0?col*h+row:col*h+(h-1-row);
+     if(wiring==="bl")
+       pos=col%2===0?col*h+(h-1-row):col*h+row;
+     if(wiring==="tr")
+       pos=((w-1-col)%2===0)?(w-1-col)*h+row:(w-1-col)*h+(h-1-row);
+     if(wiring==="br")
+       pos=((w-1-col)%2===0)?(w-1-col)*h+(h-1-row):(w-1-col)*h+row;
+   } else if(layout==="matrix"){
      pos=row*w+col;
-   else{
-     const reverse=(layout==="r2l");
-     const dir=(row%2===0?!reverse:reverse);
-     pos=dir?(row*w+col):(row*w+(w-1-col));
+   } else {
+     const reverse=layout==="r2l";
+     const dir=row%2===0?!reverse:reverse;
+     pos=dir?row*w+col:row*w+(w-1-col);
    }
+
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
    pixels.push({idx:pos,color:hex});
  }
@@ -232,11 +238,10 @@ function getPixelRGBValues(img){
  const settings={brightness:bri,segment,colorFormat,addressing,outputMode,device,colorLimit};
  const jsonText=exportPixels(pixels,settings);
  gId('JSONled').value=jsonText;
- try{ drawPixelOverlay(pixels,w,h,layout); }
- catch(e){ console.warn("Overlay kon niet getekend worden:",e.message); }
+ try{drawPixelOverlay(pixels,w,h,layout);}catch(e){console.warn("Overlay kon niet getekend worden:",e.message);}
 }
 
-// --- voorbeeld + API ---
+// --- voorbeeld & API ----------
 function addressingExample(){
  const m=gId('addressingMode').value;
  let t="";
@@ -247,39 +252,45 @@ function addressingExample(){
 }
 async function getSegments(){
  const ip=gId('deviceIP').value;
- try{
-   const r=await fetch(`http://${ip}/json/state`);
-   const j=await r.json();
-   if(j.seg)console.log("Segments:",j.seg.length,j.seg);
+ try{const r=await fetch(`http://${ip}/json/state`);
+     const j=await r.json();
+     if(j.seg)console.log("Segments:",j.seg.length,j.seg);
  }catch(e){console.warn("Segment API error:",e);}
 }
 
-// --- overlay ---
+// --- overlay -----------------
 function drawPixelOverlay(pixels,w,h,layout){
  const c=canvas.getContext("2d");
  const step=Math.max(6,Math.floor(window.innerWidth/(w*2)));
- canvas.width=w*step; canvas.height=h*step;
+ canvas.width=w*step;canvas.height=h*step;
  c.clearRect(0,0,canvas.width,canvas.height);
  for(let col=0;col<w;col++){
    for(let row=0;row<h;row++){
      let idx;
      if(layout==="matrix_v_serp"){
-       idx=col%2===0?col*h+row:col*h+(h-1-row);
+       const wiring=gId('wiringStart').value;
+       if(wiring==="tl")
+         idx=col%2===0?col*h+row:col*h+(h-1-row);
+       if(wiring==="bl")
+         idx=col%2===0?col*h+(h-1-row):col*h+row;
+       if(wiring==="tr")
+         idx=((w-1-col)%2===0)?(w-1-col)*h+row:(w-1-col)*h+(h-1-row);
+       if(wiring==="br")
+         idx=((w-1-col)%2===0)?(w-1-col)*h+(h-1-row):(w-1-col)*h+row;
      }else if(layout==="matrix"){
        idx=row*w+col;
      }else{
-       const reverse=(layout==="r2l");
-       const dir=(row%2===0?!reverse:reverse);
-       idx=dir?(row*w+col):(row*w+(w-1-col));
+       const reverse=layout==="r2l";
+       const dir=row%2===0?!reverse:reverse;
+       idx=dir?row*w+col:row*w+(w-1-col);
      }
      const p=pixels.find(px=>px.idx===idx);
      const colr=p?p.color:"000000";
      c.fillStyle="#"+colr;
      c.fillRect(col*step,row*step,step,step);
-     c.strokeStyle="#333"; c.strokeRect(col*step,row*step,step,step);
-     c.fillStyle="#aaa";
-     c.font=`${Math.max(6,step/2)}px Arial`;
-     c.textAlign="center"; c.textBaseline="middle";
+     c.strokeStyle="#333";c.strokeRect(col*step,row*step,step,step);
+     c.fillStyle="#aaa";c.font=`${Math.max(6,step/2)}px Arial`;
+     c.textAlign="center";c.textBaseline="middle";
      c.fillText(idx,col*step+step/2,row*step+step/2);
    }
  }
