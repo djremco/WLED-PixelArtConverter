@@ -208,7 +208,7 @@ function exportPixels(pixels,set){
   const arr=[];
   for(let i=0;i<pixels.length;i+=colorLimit){
     const chunk=pixels.slice(i,i+colorLimit);
-    const seg={on:true,bri:brightness,seg:{id:segment,i:chunk.map(p=>colorFormat==="dec"?col(p.color):`"${p.color}"`)}};
+    const seg = {  on: true,bri: brightness,seg: {id: segment,i: chunk.map(p => colorFormat === "dec" ? col(p.color) : p.color)}};
     arr.push(JSON.stringify(seg));
   }
 
