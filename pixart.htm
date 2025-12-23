@@ -234,8 +234,12 @@ const rowRot = (w - 1) - col;
    let pos=idx;
 
 if (layout === "matrix_v_serp") {
-  // --- WLED‑compatible horizontal serpentine mapping (definitieve fix) ---
+  // --- WLED‑compatible horizontal serpentine mapping (rotatie fix) ---
   const start = wiring || "tl";
+
+  // draai 90° de andere kant op
+  let r = (h - 1) - col;  // verwissel en spiegel horizontaal
+  let c = row;
 
   // Draai 90° terug zodat rijen/kolommen overeenkomen met WLED
   let r = col;             // verwissel kolom en rij
