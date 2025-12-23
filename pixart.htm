@@ -199,32 +199,72 @@ gId('downloadJSON').addEventListener('click',()=>{
 });
 
 // -------- Exportfuncties ----------
-function exportPixels(pixels,set){
-  const {brightness,segment,colorFormat,outputMode,device,colorLimit}=set;
-  const col=(h)=>colorFormat==="dec"
-    ? [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]
+function exportPixels(pixels, set) {
+  const {
+    brightness,
+    segment,
+    colorFormat,
+    outputMode,
+    device,
+    colorLimit
+  } = set;
+
+  // kleur omzetten
+  const col = (h) => colorFormat === "dec"
+    ? [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]
     : h;
 
-  const arr=[];
-  for(let i=0;i<pixels.length;i+=colorLimit){
-    const chunk=pixels.slice(i,i+colorLimit);
-    const seg = {  on: true,bri: brightness,seg: {id: segment,i: chunk.map(p => colorFormat === "dec" ? col(p.color) : p.color)}};
-    arr.push(JSON.stringify(seg));
+  // --- maak chunks ---
+  const chunks = [];
+  for (let i = 0; i < pixels.length; i += colorLimit) {
+    const part = pixels.slice(i, i + colorLimit);
+    const seg = {
+      on: true,
+      bri: brightness,
+      seg: {
+        id: segment,
+        i: part.map(p =>
+          colorFormat === "dec" ? col(p.color) : p.color
+        )
+      }
+    };
+    chunks.push(seg);
   }
 
-  if(outputMode==="wled") {
-  if (arr.length === 1) return arr[0];
-  // combineer meerdere chunks in één array, zodat JSON geldig blijft
-  const merged = arr.map(a => JSON.parse(a));
-  const mergedArray = merged.map(m => m.seg.i).flat();
-  const first = merged[0];
-  first.seg.i = mergedArray;
-  return JSON.stringify(first);
-}
-  if(outputMode==="curl") return arr.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${j}'`).join("\n");
-  if(outputMode==="ha") return `# Home Assistant YAML\n- platform: command_line\n  switches:\n    pixel_display:\n      friendly_name: Pixel Display\n      command_on: >\n        ${arr.map(j=>`curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '${j}'`).join(" && ")}\n      command_off: >\n        curl -X POST "http://${device}/json/state" -H "Content-Type: application/json" -d '{"on":false}'`;
+  // ——— combineer chunks (voor WLED import één JSON, voor curl één per POST) ———
+  if (outputMode === "wled") {
+    if (chunks.length === 1) return JSON.stringify(chunks[0]);
+    const merged = chunks.reduce((acc, cur) => acc.concat(cur.seg.i), []);
+    const mergedObj = { on: true, bri: brightness, seg: { id: segment, i: merged } };
+    return JSON.stringify(mergedObj);
+  }
+
+  if (outputMode === "curl") {
+    return chunks
+      .map(j => `curl -X POST "http://${device}/json/state" \
+-H "Content-Type: application/json" -d '${JSON.stringify(j)}'`)
+      .join("\n");
+  }
+
+  if (outputMode === "ha") {
+    const merged = chunks.reduce((acc, cur) => acc.concat(cur.seg.i), []);
+    const mergedObj = { on: true, bri: brightness, seg: { id: segment, i: merged } };
+    return `# Home Assistant Example
+- platform: command_line
+  switches:
+    pixel_display:
+      friendly_name: Pixel Display
+      command_on: >
+        curl -X POST "http://${device}/json/state" \
+-H "Content-Type: application/json" -d '${JSON.stringify(mergedObj)}'
+      command_off: >
+        curl -X POST "http://${device}/json/state" \
+-H "Content-Type: application/json" -d '{"on":false}'`;
+  }
+
   return "";
 }
+
 
 // -------- Hoofdfunctie ----------
 function getPixelRGBValues(img){
