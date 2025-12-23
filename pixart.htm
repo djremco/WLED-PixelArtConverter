@@ -155,7 +155,10 @@ dropZone.addEventListener("drop", e => {
   const f = e.dataTransfer.files[0];
   if (f) loadImage(f);
 });
-
+console.log(`
+Canvas: (col=${col}, row=${row}) 
+LED Matrix: index=${pos}
+`);
 
 // --- Copy & Download -----------
 gId('copyJSON').onclick=()=>navigator.clipboard.writeText(gId('JSONled').value);
@@ -242,9 +245,7 @@ if (layout === "matrix_v_serp") {
   
   // Zelfs genummerde kolommen (0, 2, 4...) van boven naar beneden
   // Oneven genummerde kolommen (1, 3, 5...) van beneden naar boven
-  pos = col % 2 === 0 
-    ? (col * h) + row        // Even kolommen: boven → beneden
-    : (col * h) + (h - 1 - row);  // Oneven kolommen: beneden → boven
+  pos = col * h + (col % 2 === 0 ? row : (h - 1 - row));
 }
 
 
