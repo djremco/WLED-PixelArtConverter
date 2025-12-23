@@ -241,7 +241,7 @@ if(layout==="matrix_v_serp"){
   if((start[1] === "r") ? ((w - 1 - col) % 2 === 1) : (col % 2 === 1)){
     rowIndex = (h - 1) - r;
   }
-  pos = colIndex * h + rowIndex;
+  pos = rowIndex * w + colIndex;
 }
 
    const hex=((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
